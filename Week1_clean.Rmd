@@ -1,0 +1,56 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+# Use tidyverse staples filter, arrange, group_by, and summarize. 
+
+sales <- readRDS(here::here("data/sales.rds"))
+
+"1. What is the earlier lease commencement date and where are these flats located?"
+ans1 <- sales %>% 
+  filter(lease_commence_date == sales %>% select(matches("lease_commence_date")) %>% min() ) %>%
+  group_by(town) %>% 
+  summarise_at(vars(lease_commence_date),funs(mean(.,na.rm=TRUE))) %>% 
+  select(matches("town") | matches("lease_commence_date"))
+toString(ans1)
+```
+```{r}
+
+"2. What are the largest HDB flats in Singapore? How much did they sell for?"
+ans2 <- sales %>% 
+  filter(floor_area_sqm == sales %>% select(matches("floor_area_sqm")) %>% max() ) %>% 
+  select(matches("town") | matches( "resale_price"))
+toString(ans2)
+```
+```{r}
+"3. What is the most expensive flat in Punggol?"
+ans3 <- sales %>% 
+  filter(town == "PUNGGOL") %>% 
+  summarize(stat = max(resale_price))
+toString(ans3)
+
+# to verify:
+ans3_chk <- sales %>% 
+  filter(town == "PUNGGOL") %>% 
+  arrange(-resale_price) 
+  # %>% View()
+```
+```{r}
+"4. Which town has, on average, the largest flats (by floor area)?"
+ans4 <- sales %>% 
+  group_by(town) %>% summarise_at(vars(floor_area_sqm),funs(mean(.,na.rm=TRUE))) %>%
+  filter( floor_area_sqm == sales %>% group_by(town) %>% summarise_at(vars(floor_area_sqm),funs(mean(.,na.rm=TRUE))) %>% select(matches("floor_area_sqm")) %>% max() ) %>% 
+  select(matches("town") | matches( "floor_area_sqm"))
+toString(ans4) 
+```
+```{r}
+"5. Which town has, on average, the cheapest flats per square meter?"
+sales <- transform(sales, price_per_sqm = ifelse(resale_price==floor_area_sqm, resale_price/floor_area_sqm, resale_price/floor_area_sqm))
+ans5 <- sales %>% 
+  group_by(town) %>% summarise_at(vars(price_per_sqm),funs(mean(.,na.rm=TRUE))) %>%
+  filter( price_per_sqm == sales %>% group_by(town) %>% summarise_at(vars(price_per_sqm),funs(mean(.,na.rm=TRUE))) %>% select(matches("price_per_sqm")) %>% min() ) %>% 
+  select(matches("town") | matches( "price_per_sqm"))
+toString(ans5) 
+
+```
