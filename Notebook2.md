@@ -37,6 +37,7 @@ library(lubridate)
 
 ``` r
 library(forcats)
+library(ggplot2)
 sales <- readRDS(here::here("data/sales.rds"))
 ```
 
@@ -240,15 +241,3 @@ ggplot(sales, aes(x = flat_type, y = floor_area_sqm)) +
 
 #Analyze change in resale price per square meter over time. Use a 6-month moving average to do so.
 ```
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or
-by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output
-will be saved alongside it (click the *Preview* button or press
-*Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the
-editor. Consequently, unlike *Knit*, *Preview* does not run any R code
-chunks. Instead, the output of the chunk when it was last run in the
-editor is displayed.
