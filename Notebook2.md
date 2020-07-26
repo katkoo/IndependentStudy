@@ -32,7 +32,7 @@ sales <- readRDS(here::here("data/sales.rds"))
 # Chapter3: 2 different types of descriptive statistics: measures of the central tendency and measures of dispersion.
 
 # 3.2 Central Tendency
-mean(sales$floor_area_sqm)
+mean(sales$floor_area_sqm) 
 ```
 
     ## [1] 97.58903
