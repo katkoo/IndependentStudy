@@ -25,6 +25,18 @@ library(here)
 ``` r
 library(e1071)
 library(skimr)
+library(lubridate)
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     date, intersect, setdiff, union
+
+``` r
+library(forcats)
 sales <- readRDS(here::here("data/sales.rds"))
 ```
 
