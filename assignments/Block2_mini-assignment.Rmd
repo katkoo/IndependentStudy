@@ -54,7 +54,7 @@ toString(ans4)
 ```
 "5. Which town has, on average, the cheapest flats per square meter?"
 ```{r}
-sales <- transform(sales, price_per_sqm = ifelse(resale_price == floor_area_sqm, resale_price / floor_area_sqm, resale_price / floor_area_sqm))
+sales <- transform(sales, price_per_sqm = resale_price / floor_area_sqm)
 ans5 <- sales %>%
   group_by(town) %>%
   summarise_at(vars(price_per_sqm), funs(mean(., na.rm = TRUE))) %>%

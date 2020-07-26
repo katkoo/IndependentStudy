@@ -5,14 +5,14 @@ Block 3: Descriptive statistics and visualisations
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ----------------------------------------------------------- tidyverse 1.3.0 --
+    ## -- Attaching packages ------------------------------------------------- tidyverse 1.3.0 --
 
     ## v ggplot2 3.3.2     v purrr   0.3.4
     ## v tibble  3.0.3     v dplyr   1.0.0
     ## v tidyr   1.1.0     v stringr 1.4.0
     ## v readr   1.3.1     v forcats 0.5.0
 
-    ## -- Conflicts -------------------------------------------------------------- tidyverse_conflicts() --
+    ## -- Conflicts ---------------------------------------------------- tidyverse_conflicts() --
     ## x dplyr::filter() masks stats::filter()
     ## x dplyr::lag()    masks stats::lag()
 
@@ -25,19 +25,9 @@ library(here)
 ``` r
 library(e1071)
 library(skimr)
-library(lubridate)
-```
-
-    ## 
-    ## Attaching package: 'lubridate'
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     date, intersect, setdiff, union
-
-``` r
-library(forcats)
-library(ggplot2)
+#library(lubridate)
+#library(forcats)
+#library(ggplot2)
 sales <- readRDS(here::here("data/sales.rds"))
 ```
 
@@ -204,8 +194,27 @@ ggplot(sales, aes(x = floor_area_sqm)) +
 
 ``` r
 sales %>%
-  filter(floor_area_sqm == 67) %>%
-  View()
+  filter(floor_area_sqm == 67) 
+```
+
+    ## # A tibble: 4,904 x 11
+    ##    month      town  flat_type block street_name storey_range floor_area_sqm
+    ##    <date>     <chr> <fct>     <chr> <chr>       <fct>                 <dbl>
+    ##  1 2015-01-01 ANG ~ 3 ROOM    603   ANG MO KIO~ 07 TO 09                 67
+    ##  2 2015-01-01 ANG ~ 3 ROOM    109   ANG MO KIO~ 01 TO 03                 67
+    ##  3 2015-01-01 ANG ~ 3 ROOM    218   ANG MO KIO~ 07 TO 09                 67
+    ##  4 2015-01-01 ANG ~ 3 ROOM    471   ANG MO KIO~ 07 TO 09                 67
+    ##  5 2015-01-01 ANG ~ 3 ROOM    434   ANG MO KIO~ 07 TO 09                 67
+    ##  6 2015-01-01 ANG ~ 3 ROOM    560   ANG MO KIO~ 07 TO 09                 67
+    ##  7 2015-01-01 ANG ~ 3 ROOM    631   ANG MO KIO~ 07 TO 09                 67
+    ##  8 2015-01-01 ANG ~ 3 ROOM    442   ANG MO KIO~ 10 TO 12                 67
+    ##  9 2015-01-01 ANG ~ 3 ROOM    558   ANG MO KIO~ 10 TO 12                 67
+    ## 10 2015-01-01 ANG ~ 3 ROOM    212   ANG MO KIO~ 10 TO 12                 67
+    ## # ... with 4,894 more rows, and 4 more variables: flat_model <fct>,
+    ## #   lease_commence_date <dbl>, remaining_lease <dbl>, resale_price <dbl>
+
+``` r
+  #%>% View()
 ```
 
 ``` r

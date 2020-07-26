@@ -7,9 +7,9 @@ library(tidyverse)
 library(here)
 library(e1071)
 library(skimr)
-library(lubridate)
-library(forcats)
-library(ggplot2)
+#library(lubridate)
+#library(forcats)
+#library(ggplot2)
 sales <- readRDS(here::here("data/sales.rds"))
 ```
 ## Chapter3: 2 different types of descriptive statistics: measures of the central tendency and measures of dispersion. 
@@ -67,8 +67,8 @@ ggplot(sales, aes(x = floor_area_sqm)) +
 
 ```{r}
 sales %>%
-  filter(floor_area_sqm == 67) %>%
-  View()
+  filter(floor_area_sqm == 67) 
+  #%>% View()
 ```
 
 ```{r}
