@@ -1,0 +1,30 @@
+---
+title: "Block2_notes"
+output: github_document
+---
+
+```{r}
+library(tidyverse)
+sales <- read_csv(here::here("data/hdb_resale_2015_onwards.csv"))
+# library(readr)
+# sales <- read_csv("data/hdb_resale_2015_onwards.csv")
+# View(sales)
+```
+```{r}
+sales <- read_csv(here::here("data/hdb_resale_2015_onwards.csv"))
+sales %>% glimpse()
+```
+```{r}
+library(lubridate)
+library(forcats)
+
+sales <- sales %>%
+  mutate(
+    month = ymd(month, truncated = 1),
+    flat_type = as_factor(flat_type),
+    storey_range = as_factor(storey_range),
+    flat_model = as_factor(flat_model)
+  )
+sales %>% glimpse()
+saveRDS(sales, here::here("data/sales.rds"))
+```

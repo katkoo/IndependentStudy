@@ -1,0 +1,92 @@
+---
+title: "Block 3: Descriptive statistics and visualisations"
+output: github_document
+---
+```{r}
+library(tidyverse)
+library(here)
+library(e1071)
+library(skimr)
+library(lubridate)
+library(forcats)
+library(ggplot2)
+sales <- readRDS(here::here("data/sales.rds"))
+```
+## Chapter3: 2 different types of descriptive statistics: measures of the central tendency and measures of dispersion. 
+https://02522-cua.github.io/lecturenotes/descriptive-statistics-and-visualisations.html#assignment-monday-february-17th-2359
+
+### 3.2 Central Tendency
+```{r}
+mean(sales$floor_area_sqm)
+median(sales$floor_area_sqm)
+
+# from https://stackoverflow.com/a/25635740
+manual_mode <- function(x, na.rm = FALSE) { # we don't use 'mode' as a function name because it already exists
+  if (na.rm) {
+    x <- x[!is.na(x)]
+  }
+  ux <- unique(x)
+  return(ux[which.max(tabulate(match(x, ux)))])
+}
+
+manual_mode(sales$floor_area_sqm)
+```
+### 3.3 Dispersion
+```{r}
+"Range"
+max(sales$floor_area_sqm) - min(sales$floor_area_sqm)
+
+"Interquartile Range"
+IQR(sales$floor_area_sqm)
+
+"Standard Deviation"
+sd(sales$floor_area_sqm)
+
+"Coefficient of variation"
+sd(sales$floor_area_sqm) / mean(sales$floor_area_sqm)
+
+"Kurtosis and Skewness from the 'e1071` library"
+kurtosis(sales$floor_area_sqm)
+skewness(sales$floor_area_sqm)
+"Summary"
+summary(sales$floor_area_sqm)
+"Skim"
+skim(sales$floor_area_sqm)
+```
+### 3.4 Visualization
+```{r}
+ggplot(sales, aes(x = floor_area_sqm)) +
+  geom_histogram(binwidth = 5)
+```
+
+```{r}
+ggplot(sales, aes(x = floor_area_sqm)) +
+  geom_histogram(aes(y = ..density..), binwidth = 5) +
+  stat_function(fun = dnorm, args = list(mean = mean(sales$floor_area_sqm), sd = sd(sales$floor_area_sqm)))
+```
+
+```{r}
+sales %>%
+  filter(floor_area_sqm == 67) %>%
+  View()
+```
+
+```{r}
+ggplot(sales, aes(x = 1, y = floor_area_sqm)) +
+  geom_boxplot()
+```
+
+```{r}
+ggplot(sales, aes(x = 1, y = floor_area_sqm)) +
+  geom_violin()
+```
+```{r}
+ggplot(sales, aes(x = floor_area_sqm)) +
+  geom_histogram(binwidth = 10) +
+  facet_wrap(vars(flat_type), scales = "free_y")
+```
+
+```{r}
+ggplot(sales, aes(x = flat_type, y = floor_area_sqm)) +
+  geom_violin()
+```

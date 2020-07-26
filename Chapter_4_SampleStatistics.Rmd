@@ -1,0 +1,215 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+sales <- readRDS(here::here("data/sales.rds"))
+
+mu <- sales %>% 
+  summarize(stat = mean(resale_price))
+
+mu
+```
+
+```{r}
+sales %>% 
+  sample_n(100) %>% 
+  summarize(stat = mean(resale_price))
+```
+```{r}
+sample_mean <- function(data, size = 500) {
+  data %>% 
+    sample_n(size) %>% 
+    summarize(stat = mean(resale_price))
+}
+
+sampled_means <- rerun(500, sample_mean(sales)) %>% bind_rows()
+
+sampled_means %>% 
+  ggplot(aes(x = stat)) + geom_histogram() +
+  geom_vline(xintercept=mu$stat)
+```
+
+```{r}
+#sample of 500 (from the entire database)
+sales_sample <- sales %>%
+  sample_n(500)
+
+# mean of the sample
+x_bar <- sales_sample %>% 
+  summarize(stat = mean(resale_price))
+x_bar
+
+# same with different library
+sales_sample %>% 
+  specify(response = resale_price) %>%
+  calculate(stat = "mean")
+```
+
+```{r}
+# Bootstrapping 
+bootstrapped_resale_price <- sales_sample %>% 
+  specify(response = resale_price) %>% 
+  generate(reps = 500) %>% 
+  calculate(stat = "mean")
+
+bootstrapped_resale_price %>% 
+  visualise() +
+  geom_vline(xintercept = x_bar$stat)
+```
+
+```{r}
+bootstrapped_resale_price %>% 
+  get_ci()
+```
+
+```{r}
+#Exercise 1: Using RStudio’s help panel, find out how to use the standard error method with get_ci. Do you find the same values?
+
+#Exercise 2: Try changing the value of your confidence level (by default, get_ci uses 0.95). What do you observe as you ask for higher confidence levels?
+
+#Exercise 3: Repeat the previous steps using a different value for n, the size of our original sample. What does the new confidence interval compare to the previous one?
+```
+
+```{r}
+# Confidence intervals for subsets: 
+#x_bar_mp_all <- sales %>% 
+#  filter(town == "MARINE PARADE") %>% 
+#  summarize(stat = mean(resale_price))
+
+#x_bar_mp
+```
+```{r}
+# Exercise: 
+
+sales %>% 
+  #filter(floor_area_sqm == 67) %>% 
+  filter(town == "MARINE PARADE") %>% 
+  View()
+
+
+#sample of 500 (from the entire database)
+sales_sample_mp <- sales %>%
+  filter(town == "MARINE PARADE") %>% 
+  sample_n(100) # Error: `size` must be less or equal than 485 (size of data), set `replace` = TRUE to use sampling with replacement.
+
+# mean of the sample
+x_bar_mp <- sales_sample_mp %>% 
+  summarize(stat = mean(resale_price))
+x_bar_mp
+
+
+
+bootstrapped_resale_price_mp <- sales_sample_mp %>% 
+  filter(town == "MARINE PARADE") %>% 
+  specify(response = resale_price) %>% 
+  generate(reps = 500) %>% 
+  calculate(stat = "mean")
+
+bootstrapped_resale_price_mp %>% 
+  visualise() +
+  geom_vline(xintercept = x_bar$stat)
+
+bootstrapped_resale_price_mp %>% 
+  get_ci()
+```
+
+```{r}
+# 4.4 Comparing means between groups
+
+town_means <- sales %>%
+  filter(town == "QUEENSTOWN" | town == "MARINE PARADE") %>%
+  group_by(town) %>%
+  summarise(mean = mean(resale_price))
+town_means
+
+
+```
+
+```{r}
+ggplot() +
+  geom_histogram(
+    data = sales %>%
+      filter(town == "QUEENSTOWN" | town == "MARINE PARADE"),
+    mapping = aes(x = resale_price, y = ..density.., group = town, fill = town),
+    position = position_dodge()
+  ) +
+  geom_vline(
+    data = town_means,
+    mapping = aes(xintercept = mean, group = town, color = town)
+  )
+```
+
+```{r}
+bootstrapped_resale_price_qt <- sales %>% 
+  filter(town == "QUEENSTOWN") %>% 
+  specify(response = resale_price) %>% 
+  generate(reps = 100) %>% 
+  calculate(stat = "mean")
+
+bootstrapped_resale_price_qt %>% 
+  get_ci()
+```
+```{r}
+# test the significance of the difference more formally with infer
+
+mean_diff <- sales %>% 
+  filter(town == "MARINE PARADE" | town == "QUEENSTOWN") %>% 
+  specify(formula = resale_price ~ town) %>% 
+  calculate(stat = "diff in means", order = c("QUEENSTOWN", "MARINE PARADE"))
+mean_diff
+
+```
+
+```{r}
+# We then generate a set of sampled datasets. But instead of doing a simple bootstrap, we generate each sample based on the null hypothesis, namely that there is no difference between the mean of the two towns.
+
+null_distribution <- sales %>% 
+  filter(town == "MARINE PARADE" | town == "QUEENSTOWN") %>% 
+  specify(formula = resale_price ~ town) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 500, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("QUEENSTOWN", "MARINE PARADE"))
+
+null_distribution %>% 
+  visualise(bins = 100) +
+  shade_p_value(obs_stat = mean_diff, direction = "greater")
+
+
+```
+
+```{r}
+null_distribution %>% 
+  get_pvalue(obs_stat = mean_diff, direction = "greater")
+```
+
+```{r}
+sales %>% 
+  filter(town == "MARINE PARADE" | town == "QUEENSTOWN") %>% 
+  specify(formula = resale_price ~ town) %>% 
+  # hypothesize(null = "independence") %>% # disable the null hypothesis
+  generate(reps = 500, type = "bootstrap") %>% # set type to bootstrap
+  calculate(stat = "diff in means", order = c("QUEENSTOWN", "MARINE PARADE")) %>% 
+  get_ci()
+```
+
+```{r}
+# What does the confidence interval tell you in this case? Use shade_confidence_interval to plot the CI.
+
+# Exercise 4: In the RStudio help, find out what the direction argument does for the get_p_value and shade_p_value functions. Try setting it to both on the data above.
+
+# Exercise 5: Are the resale prices means between Marine Parade and Bukit Timah significantly different?
+
+# Exercise 6: During the previous week, we saw that the price of a flat can be quite different depending on what storey the flat is located on. Use the same procedure to see if the average price of 3 room flats on storey 04-06 is significantly different from 3 room flats on storey 07-09.
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

@@ -1,0 +1,30 @@
+---
+title: "Block3_assignment1"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+```
+
+## Exploration of all variables in the dataset
+
+1. Summarize the different continuous variables (area, price, remaining lease) as well as the nominal/ordinal variables (month, flat_type, town, flat_model, storey_range), summarize these variables in both table (stats on central tendency and distribution) and visual form.
+```{r}
+
+#
+```
+2. Analyze the distribution of (some of) these variables for different subsets of the data. For example, explore the difference between towns, or between flat types.
+
+```{r}
+
+```
+3. Analyze the distribution of at least one variable for unique combinations of town and flat_type (for each town, for each flat type: Ang Mo Kio, 1 room; Ang Mo Kio 2 room; etc.)
+```{r}
+
+```
+4. Analyze change in resale price per square meter over time. Use a 6-month moving average to do so.
+```{r}
+
+```
+

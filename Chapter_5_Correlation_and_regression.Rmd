@@ -1,0 +1,122 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+sales <- readRDS(here::here("data/sales.rds"))
+
+sales %>% 
+  select(floor_area_sqm, remaining_lease, lease_commence_date, resale_price) %>% 
+  pairs()
+```
+
+```{r}
+sales %>% 
+  select(floor_area_sqm, remaining_lease, lease_commence_date, resale_price) %>% 
+  sample_frac(0.05) %>% 
+  pairs()
+```
+
+```{r}
+# nominal or ordinal variables: flat type, floor number and the town
+
+# visualizing relations between these variables and the continous variables?
+
+# In summary, nominal variables are used to “name,” or label a series of values.  Ordinal scales provide good information about the order of choices, such as in a customer satisfaction survey.  Interval scales give us the order of values + the ability to quantify the difference between each one.  Finally, Ratio scales give us the ultimate–order, interval values, plus the ability to calculate ratios since a “true zero” can be defined. 
+
+
+# 1. Violin plot for nominal variables: 
+ggplot(sales, aes(x = flat_type, y = floor_area_sqm)) + 
+  geom_violin()
+ggplot(sales, aes(x = flat_type, y = resale_price)) + 
+  geom_violin()
+
+# 2. Histogram
+ggplot(sales, aes(x = lease_commence_date)) + 
+  geom_histogram(binwidth = 10) +
+  facet_wrap(vars(town), scales = "free_y")
+
+# 3. Boxplot
+ggplot(sales, aes(x = storey_range , y = resale_price )) + 
+  geom_boxplot()
+
+```
+
+```{r}
+# 5.3. Correlation 
+
+# Pearson’s coefficient can only be applied on continuous variables. It is also a measure of linear relationship, so it may not always be the best to measure non-linear relationships.
+
+cor(sales$floor_area_sqm, sales$resale_price, method = "pearson")
+
+```
+
+```{r}
+# Spearman’s rank correlation coefficient, that works on both continuous and ordinal variables and doesn’t look at the values of the variable, but only their ranks.
+
+cor(sales$floor_area_sqm, sales$resale_price, method = "spearman")
+```
+
+```{r}
+cor(as.integer(sales$storey_range), sales$resale_price, method = "spearman") 
+# before an appropriate sort
+
+sales <- sales %>% 
+  mutate(storey_range = fct_relevel(storey_range, sort(levels(storey_range))))
+
+cor(as.integer(sales$storey_range), sales$resale_price, method = "spearman") # can you figure out what the `as.integer()` function does?
+```
+```{r}
+# 5.4 Regression
+
+sales_2016 <- filter(sales, month > "2015-12-01" & month < "2017-01-01")
+ols <- lm(resale_price ~ floor_area_sqm, sales_2016)
+
+glance(ols) # glance returns goodness of fit measures
+
+tidy(ols) # tidy returns information about the regression coefficients
+
+```
+
+```{r}
+sales_ols <- augment(ols, data = sales_2016)
+sales_ols
+```
+
+```{r}
+#residuals of our model 
+
+sales_ols %>% 
+  ggplot(aes(x = .resid)) +
+  geom_histogram(bins = 50)
+```
+
+```{r}
+# Assignment 2.1:
+#“Is the average price of 3 room flats on storey 04-06 significantly different from 3 room flats on storey 07-09?”. To do so, we will use all transactions for 3 room flats in storeys 04-06 or 07-09 in our dataset.
+
+#State your null hypothesis and your alternative hypothesis.
+#Construct the null distribution.
+#Find and visualise the p-value.
+#Construct and visualise the confidence interval of the sample difference in means and discuss its relation with the p-value.
+#BONUS: Plot the difference in means for successive groups of flats per storey, i.e., obtain the difference in means for 04-06 to 01-03, then 07-09 to 04-06, then 12-10 to 07-09 etc. What do you observe? When does the price difference stop being significant? (if ever?)
+
+# Assignment 2.2 Regression
+#Experiment with the addition of different continuous and ordinal variables to the regression model built in Chapter 5 (but EXCLUDE town for now). Pay attention to the overall goodness of fit of the model but also to the regression coefficients. Interpret and explain the coefficients.
+#Add the town variable to your regression model. Because town is a categorical variable R will create ‘dummy’ or binary variables for each unique entry. The first entry will be the ‘reference’. All the other coefficients will be reported relative to that reference (in this case AMK). If, say, the coefficient for Bedok is -30,000 that means that relative to Ang Mo Kio, flats in Bedok are $30,000 cheaper. You can change the ‘reference’ by chaning town into a factor and order your factor levels so that the reference is the first level. Interpret and explain the goodness of fit measures and the coefficients. Tip: if you have a lot of coefficients to report, don’t shy away from using visualiations.
+#Based on your model, try to work through a simple example. Let’s say you have a family in the market for a 3 room flat in Punggol. They are looking for a flat sized at 67 sq meters and 95 years left on the lease. What should they be looking to pay according to your model? Can you explain to them how each of their choices translates into the flat price? Compare your estimate with all known transactions of flats with those characteristics - how correct was your model?
+#The coefficients are very useful in helping us understand how the resale price is affected by other variables. However, sometimes we conduct regression analysis simply because we are interested in predicting the dependent variable for new observations. So far, you have done your analysis only on the 2016 data. Use your 2016 model, to predict the 2017 prices. Tip: you can use the augment function with the newData argument to do this. Calculate the standard error of the estimate for the 2017 and compare that with your 2016 data. Did the error go up or down and what might cause this?
+#BONUS: Finally, discuss how you could further enhance your analysis with the inclusion of additional variables or data not contained within the HDB resale transaction dataset itself, or try out a non-linear model by transforming some of your independent variables. For instance (this is an example), if you find that the resale_price is usually roughly dependent on the square of the remaining_lease, you could run a linear model with remaining_lease ^ 2.
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
