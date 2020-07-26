@@ -1,8 +1,9 @@
-R Notebook
+Mini-assignment\#1
 ================
 
+## Use tidyverse staples “filter”, “arrange”, “group\_by”, and “summarize”.
+
 ``` r
-# Use tidyverse staples filter, arrange, group_by, and summarize.
 library(tidyverse)
 ```
 
@@ -25,11 +26,10 @@ library(here)
 
 ``` r
 sales <- readRDS(here::here("data/sales.rds"))
-
-"1. What is the earlier lease commencement date and where are these flats located?"
 ```
 
-    ## [1] "1. What is the earlier lease commencement date and where are these flats located?"
+“1. What is the earlier lease commencement date and where are these
+flats located?”
 
 ``` r
 ans1 <- sales %>%
@@ -59,11 +59,8 @@ toString(ans1)
 
     ## [1] "JURONG EAST, 1966"
 
-``` r
-"2. What are the largest HDB flats in Singapore? How much did they sell for?"
-```
-
-    ## [1] "2. What are the largest HDB flats in Singapore? How much did they sell for?"
+“2. What are the largest HDB flats in Singapore? How much did they sell
+for?”
 
 ``` r
 ans2 <- sales %>%
@@ -74,11 +71,7 @@ toString(ans2)
 
     ## [1] "KALLANG/WHAMPOA, 1060000"
 
-``` r
-"3. What is the most expensive flat in Punggol?"
-```
-
-    ## [1] "3. What is the most expensive flat in Punggol?"
+“3. What is the most expensive flat in Punggol?”
 
 ``` r
 ans3 <- sales %>%
@@ -97,11 +90,7 @@ ans3_chk <- sales %>%
 # %>% View()
 ```
 
-``` r
-"4. Which town has, on average, the largest flats (by floor area)?"
-```
-
-    ## [1] "4. Which town has, on average, the largest flats (by floor area)?"
+“4. Which town has, on average, the largest flats (by floor area)?”
 
 ``` r
 ans4 <- sales %>%
@@ -118,11 +107,8 @@ toString(ans4)
 
     ## [1] "PASIR RIS, 123.090423345664"
 
-``` r
-"5. Which town has, on average, the cheapest flats per square meter?"
-```
-
-    ## [1] "5. Which town has, on average, the cheapest flats per square meter?"
+“5. Which town has, on average, the cheapest flats per square
+meter?”
 
 ``` r
 sales <- transform(sales, price_per_sqm = ifelse(resale_price == floor_area_sqm, resale_price / floor_area_sqm, resale_price / floor_area_sqm))
