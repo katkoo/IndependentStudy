@@ -4,7 +4,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE) 
+knitr::opts_chunk$set(echo = TRUE)
 ```
 ```{r}
 library(tidyverse)
@@ -25,14 +25,14 @@ sales <- readRDS(here::here("data/sales.rds"))
 floor_area_sqm <- sales$floor_area_sqm
 resale_price <- sales$resale_price
 remaining_lease <- sales$remaining_lease
-var_list_cont = list("floor_area_sqm", "resale_price", "remaining_lease")
+var_list_cont <- list("floor_area_sqm", "resale_price", "remaining_lease")
 
 month <- sales$month
 town <- sales$town
 flat_type <- sales$flat_type
 flat_model <- sales$flat_model
 storey_range <- sales$storey_range
-var_list_other = list("month","town","flat_type","flat_model","storey_range")
+var_list_other <- list("month", "town", "flat_type", "flat_model", "storey_range")
 
 "Central tendency (only numeric data):"
 manual_mode <- function(x, na.rm = FALSE) { # we don't use 'mode' as a function name because it already exists
@@ -43,41 +43,40 @@ manual_mode <- function(x, na.rm = FALSE) { # we don't use 'mode' as a function 
   return(ux[which.max(tabulate(match(x, ux)))])
 }
 
-for (variable in var_list_cont){
+for (variable in var_list_cont) {
   print(variable)
-  a<- get(variable)
-  print(  paste("Mode: ", toString(manual_mode(a)),", Mean: ", toString(mean(a)), ", Median: ", toString(median(a)) )   )
+  a <- get(variable)
+  print(paste("Mode: ", toString(manual_mode(a)), ", Mean: ", toString(mean(a)), ", Median: ", toString(median(a))))
 }
 
 "Dispertion (all data types):"
 for (variable in var_list_cont) {
   print(variable)
-  a<- get(variable)
-  print ( skim(a) )
+  a <- get(variable)
+  print(skim(a))
 }
 for (variable in var_list_other) {
   print(variable)
-  a<- get(variable)
-  print ( skim(a) )
+  a <- get(variable)
+  print(skim(a))
 }
 ```
 ```{r}
 "Visualization (only numerical data)"
 for (variable in var_list_cont) {
   print(variable)
-  a<- get(variable)
-  
-  print( ggplot(sales, aes(x = a)) + 
-    geom_histogram(aes(y = ..density..)) + #, binwidth = 5
-    stat_function(fun = dnorm, args = list(mean = mean(a), sd = sd(a)))  )
-  
-  print( ggplot(sales, aes(x = 1, y = a)) + 
-    geom_boxplot() )
-  
-  print( ggplot(sales, aes(x = 1, y = a)) + 
-  geom_violin() )
-}
+  a <- get(variable)
 
+  print(ggplot(sales, aes(x = a)) +
+    geom_histogram(aes(y = ..density..)) + # , binwidth = 5
+    stat_function(fun = dnorm, args = list(mean = mean(a), sd = sd(a))))
+
+  print(ggplot(sales, aes(x = 1, y = a)) +
+    geom_boxplot())
+
+  print(ggplot(sales, aes(x = 1, y = a)) +
+    geom_violin())
+}
 ```
 
 2. Analyze the distribution of (some of) these variables for different subsets of the data. For example, explore the difference between towns, or between flat types.
@@ -85,60 +84,60 @@ for (variable in var_list_cont) {
 ```{r}
 for (variable in var_list_cont) {
   print(variable)
-  a<- get(variable)
-  
-  print( ggplot(sales, aes(x = a)) + 
-    geom_histogram() + #binwidth = 10
-    facet_wrap(vars(town), scales = "free_y") )
-  
-  print( ggplot(sales, aes(x = a)) + 
-    geom_histogram() + #binwidth = 10
-    facet_wrap(vars(flat_type), scales = "free_y") )
-  
-  print( ggplot(sales, aes(x = flat_type, y = a)) + 
-  geom_violin() )
-  
-  p<- ggplot(sales, aes(x = town, y = a)) + 
-    geom_boxplot() 
-  print( p + theme(axis.text.x = element_text(angle = 90)) )
+  a <- get(variable)
+
+  print(ggplot(sales, aes(x = a)) +
+    geom_histogram() + # binwidth = 10
+    facet_wrap(vars(town), scales = "free_y"))
+
+  print(ggplot(sales, aes(x = a)) +
+    geom_histogram() + # binwidth = 10
+    facet_wrap(vars(flat_type), scales = "free_y"))
+
+  print(ggplot(sales, aes(x = flat_type, y = a)) +
+    geom_violin())
+
+  p <- ggplot(sales, aes(x = town, y = a)) +
+    geom_boxplot()
+  print(p + theme(axis.text.x = element_text(angle = 90)))
 }
 ```
+
 3. Analyze the distribution of at least one variable for unique combinations of town and flat_type (for each town, for each flat type: Ang Mo Kio, 1 room; Ang Mo Kio 2 room; etc.)
 ```{r}
 for (t in unique(town)) {
   print(t)
-  print( ggplot(sales %>% filter(town == t), aes(x = flat_type, y = resale_price)) + 
-    geom_violin() )
+  print(ggplot(sales %>% filter(town == t), aes(x = flat_type, y = resale_price)) +
+    geom_violin())
 }
 for (f in unique(flat_type)) {
   print(f)
-  p<-  ggplot(sales %>% filter(flat_type == f), aes(x = town, y = resale_price)) + 
-    geom_violin() 
-  print( p + theme(axis.text.x = element_text(angle = 90)) )
+  p <- ggplot(sales %>% filter(flat_type == f), aes(x = town, y = resale_price)) +
+    geom_violin()
+  print(p + theme(axis.text.x = element_text(angle = 90)))
 }
 ```
+
 4. Analyze change in resale price per square meter over time. Use a 6-month moving average to do so.
 ```{r}
 library(lubridate)
-mon <- month(as.Date(sales$month))*(year(as.Date(sales$month)) -year(as.Date(min(sales$month))) )
+mon <- month(as.Date(sales$month)) * (year(as.Date(sales$month)) - year(as.Date(min(sales$month))))
 sales <- transform(sales, price_per_sqm = resale_price / floor_area_sqm, mont = mon)
 
-month_list <- seq(min(mon), max(mon), by=6)
+month_list <- seq(min(mon), max(mon), by = 6)
 print(month_list)
 
-for (i in month_list){
-  range <- seq(i,i+6)
+for (i in month_list) {
+  range <- seq(i, i + 6)
   new_col <- ifelse(sales$mont %in% range, i, -1)
-  
-  sales <- transform(sales, mont = ifelse(new_col==-1,mont, i)) 
-  print(paste ("New 6-months period starting from: ", toString(i))  )
 
+  sales <- transform(sales, mont = ifelse(new_col == -1, mont, i))
+  print(paste("New 6-months period starting from: ", toString(i)))
 }
-sales <- sales %>% mutate( mont = as_factor(mont) )
-print( ggplot(sales, aes(x = mont, y = price_per_sqm)) + 
-  geom_violin() )
-print( ggplot(sales, aes(x = price_per_sqm)) + 
-  geom_histogram() + #binwidth = 10
-  facet_wrap(vars(mont), scales = "free_y") )
+sales <- sales %>% mutate(mont = as_factor(mont))
+print(ggplot(sales, aes(x = mont, y = price_per_sqm)) +
+  geom_violin())
+print(ggplot(sales, aes(x = price_per_sqm)) +
+  geom_histogram() + # binwidth = 10
+  facet_wrap(vars(mont), scales = "free_y"))
 ```
-

@@ -71,13 +71,21 @@ bootstrapped_resale_price %>%
 bootstrapped_resale_price %>% 
   get_ci()
 ```
-
+### Exercise 1: Using RStudio’s help panel, find out how to use the standard error method with get_ci. Do you find the same values?
 ```{r}
-#Exercise 1: Using RStudio’s help panel, find out how to use the standard error method with get_ci. Do you find the same values?
 
-#Exercise 2: Try changing the value of your confidence level (by default, get_ci uses 0.95). What do you observe as you ask for higher confidence levels?
+```
 
-#Exercise 3: Repeat the previous steps using a different value for n, the size of our original sample. What does the new confidence interval compare to the previous one?
+
+### Exercise 2: Try changing the value of your confidence level (by default, get_ci uses 0.95). What do you observe as you ask for higher confidence levels?
+```{r}
+
+```
+
+
+### Exercise 3: Repeat the previous steps using a different value for n, the size of our original sample. What does the new confidence interval compare to the previous one?
+```{r}
+
 ```
 
 ```{r}
@@ -201,20 +209,20 @@ sales %>%
   get_ci()
 ```
 
-## Exercise 4: In the RStudio help, find out what the direction argument does for the get_p_value and shade_p_value functions. Try setting it to both on the data above.
+### Exercise 4: In the RStudio help, find out what the direction argument does for the get_p_value and shade_p_value functions. Try setting it to both on the data above.
 ```{r}
 
 ```
 
 
 
-## Exercise 5: Are the resale prices means between Marine Parade and Bukit Timah significantly different?
+### Exercise 5: Are the resale prices means between Marine Parade and Bukit Timah significantly different?
 ```{r}
 
 ```
 
 
-## Exercise 6: During the previous week, we saw that the price of a flat can be quite different depending on what storey the flat is located on. Use the same procedure to see if the average price of 3 room flats on storey 04-06 is significantly different from 3 room flats on storey 07-09.
+### Exercise 6: During the previous week, we saw that the price of a flat can be quite different depending on what storey the flat is located on. Use the same procedure to see if the average price of 3 room flats on storey 04-06 is significantly different from 3 room flats on storey 07-09.
 ```{r}
 
 ```

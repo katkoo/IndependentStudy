@@ -1,14 +1,41 @@
----
-title: "Block4: sample statistics"
-output: github_document
----
+Block4: sample statistics
+================
 
-```{r}
+``` r
 library(tidyverse)
+```
+
+    ## -- Attaching packages ----------------------------------------------------------------- tidyverse 1.3.0 --
+
+    ## v ggplot2 3.3.2     v purrr   0.3.4
+    ## v tibble  3.0.3     v dplyr   1.0.0
+    ## v tidyr   1.1.0     v stringr 1.4.0
+    ## v readr   1.3.1     v forcats 0.5.0
+
+    ## -- Conflicts -------------------------------------------------------------------- tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
+
+``` r
 library(here)
+```
+
+    ## here() starts at C:/Users/Kateryna/Documents/2020/IndependentStudy/Rstudio
+
+``` r
 library(e1071)
 library(skimr)
 library(lubridate)
+```
+
+    ## 
+    ## Attaching package: 'lubridate'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     date, intersect, setdiff, union
+
+``` r
 library(forcats)
 library(ggplot2)
 library(infer)
@@ -20,12 +47,23 @@ mu <- sales %>%
 mu
 ```
 
-```{r}
+    ## # A tibble: 1 x 1
+    ##      stat
+    ##     <dbl>
+    ## 1 439793.
+
+``` r
 sales %>% 
   sample_n(100) %>% 
   summarize(stat = mean(resale_price))
 ```
-```{r}
+
+    ## # A tibble: 1 x 1
+    ##      stat
+    ##     <dbl>
+    ## 1 445452.
+
+``` r
 sample_mean <- function(data, size = 500) {
   data %>% 
     sample_n(size) %>% 
@@ -39,7 +77,11 @@ sampled_means %>%
   geom_vline(xintercept=mu$stat)
 ```
 
-```{r}
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](Block4_mini-assignment_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
 #sample of 500 (from the entire database)
 sales_sample <- sales %>%
   sample_n(500)
@@ -48,39 +90,60 @@ sales_sample <- sales %>%
 x_bar <- sales_sample %>% 
   summarize(stat = mean(resale_price))
 x_bar
+```
 
+    ## # A tibble: 1 x 1
+    ##      stat
+    ##     <dbl>
+    ## 1 437837.
+
+``` r
 # same with different library
 sales_sample %>% 
   specify(response = resale_price) %>%
   calculate(stat = "mean")
 ```
 
-```{r}
+    ## # A tibble: 1 x 1
+    ##      stat
+    ##     <dbl>
+    ## 1 437837.
+
+``` r
 # Bootstrapping 
 bootstrapped_resale_price <- sales_sample %>% 
   specify(response = resale_price) %>% 
   generate(reps = 500) %>% 
   calculate(stat = "mean")
+```
 
+    ## Setting `type = "bootstrap"` in `generate()`.
+
+``` r
 bootstrapped_resale_price %>% 
   visualise() +
   geom_vline(xintercept = x_bar$stat)
 ```
 
-```{r}
+![](Block4_mini-assignment_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
 bootstrapped_resale_price %>% 
   get_ci()
 ```
 
-```{r}
-#Exercise 1: Using RStudio’s help panel, find out how to use the standard error method with get_ci. Do you find the same values?
+    ## # A tibble: 1 x 2
+    ##   lower_ci upper_ci
+    ##      <dbl>    <dbl>
+    ## 1  426313.  452325.
 
-#Exercise 2: Try changing the value of your confidence level (by default, get_ci uses 0.95). What do you observe as you ask for higher confidence levels?
+### Exercise 1: Using RStudio’s help panel, find out how to use the standard error method with get\_ci. Do you find the same values?
 
-#Exercise 3: Repeat the previous steps using a different value for n, the size of our original sample. What does the new confidence interval compare to the previous one?
-```
+### Exercise 2: Try changing the value of your confidence level (by default, get\_ci uses 0.95). What do you observe as you ask for higher confidence levels?
 
-```{r}
+### Exercise 3: Repeat the previous steps using a different value for n, the size of our original sample. What does the new confidence interval compare to the previous one?
+
+``` r
 # Confidence intervals for subsets: 
 #x_bar_mp_all <- sales %>% 
 #  filter(town == "MARINE PARADE") %>% 
@@ -88,8 +151,8 @@ bootstrapped_resale_price %>%
 
 #x_bar_mp
 ```
-```{r}
 
+``` r
 sales %>% 
   #filter(floor_area_sqm == 67) %>% 
   filter(town == "MARINE PARADE") %>% 
@@ -105,36 +168,63 @@ sales_sample_mp <- sales %>%
 x_bar_mp <- sales_sample_mp %>% 
   summarize(stat = mean(resale_price))
 x_bar_mp
+```
 
+    ## # A tibble: 1 x 1
+    ##      stat
+    ##     <dbl>
+    ## 1 528647.
 
-
+``` r
 bootstrapped_resale_price_mp <- sales_sample_mp %>% 
   filter(town == "MARINE PARADE") %>% 
   specify(response = resale_price) %>% 
   generate(reps = 500) %>% 
   calculate(stat = "mean")
+```
 
+    ## Setting `type = "bootstrap"` in `generate()`.
+
+``` r
 bootstrapped_resale_price_mp %>% 
   visualise() +
   geom_vline(xintercept = x_bar$stat)
+```
 
+![](Block4_mini-assignment_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+``` r
 bootstrapped_resale_price_mp %>% 
   get_ci()
 ```
 
-```{r}
+    ## # A tibble: 1 x 2
+    ##   lower_ci upper_ci
+    ##      <dbl>    <dbl>
+    ## 1  497263.  562226.
+
+``` r
 # 4.4 Comparing means between groups
 
 town_means <- sales %>%
   filter(town == "QUEENSTOWN" | town == "MARINE PARADE") %>%
   group_by(town) %>%
   summarise(mean = mean(resale_price))
-town_means
-
-
 ```
 
-```{r}
+    ## `summarise()` ungrouping output (override with `.groups` argument)
+
+``` r
+town_means
+```
+
+    ## # A tibble: 2 x 2
+    ##   town             mean
+    ##   <chr>           <dbl>
+    ## 1 MARINE PARADE 540409.
+    ## 2 QUEENSTOWN    549037.
+
+``` r
 ggplot() +
   geom_histogram(
     data = sales %>%
@@ -148,17 +238,31 @@ ggplot() +
   )
 ```
 
-```{r}
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](Block4_mini-assignment_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
 bootstrapped_resale_price_qt <- sales %>% 
   filter(town == "QUEENSTOWN") %>% 
   specify(response = resale_price) %>% 
   generate(reps = 100) %>% 
   calculate(stat = "mean")
+```
 
+    ## Setting `type = "bootstrap"` in `generate()`.
+
+``` r
 bootstrapped_resale_price_qt %>% 
   get_ci()
 ```
-```{r}
+
+    ## # A tibble: 1 x 2
+    ##   lower_ci upper_ci
+    ##      <dbl>    <dbl>
+    ## 1  541578.  557903.
+
+``` r
 # test the significance of the difference more formally with infer
 
 mean_diff <- sales %>% 
@@ -166,10 +270,14 @@ mean_diff <- sales %>%
   specify(formula = resale_price ~ town) %>% 
   calculate(stat = "diff in means", order = c("QUEENSTOWN", "MARINE PARADE"))
 mean_diff
-
 ```
 
-```{r}
+    ## # A tibble: 1 x 1
+    ##    stat
+    ##   <dbl>
+    ## 1 8628.
+
+``` r
 # We then generate a set of sampled datasets. But instead of doing a simple bootstrap, we generate each sample based on the null hypothesis, namely that there is no difference between the mean of the two towns.
 
 null_distribution <- sales %>% 
@@ -182,16 +290,21 @@ null_distribution <- sales %>%
 null_distribution %>% 
   visualise(bins = 100) +
   shade_p_value(obs_stat = mean_diff, direction = "greater")
-
-
 ```
 
-```{r}
+![](Block4_mini-assignment_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
 null_distribution %>% 
   get_pvalue(obs_stat = mean_diff, direction = "greater")
 ```
 
-```{r}
+    ## # A tibble: 1 x 1
+    ##   p_value
+    ##     <dbl>
+    ## 1   0.204
+
+``` r
 sales %>% 
   filter(town == "MARINE PARADE" | town == "QUEENSTOWN") %>% 
   specify(formula = resale_price ~ town) %>% 
@@ -201,22 +314,13 @@ sales %>%
   get_ci()
 ```
 
-## Exercise 4: In the RStudio help, find out what the direction argument does for the get_p_value and shade_p_value functions. Try setting it to both on the data above.
-```{r}
+    ## # A tibble: 1 x 2
+    ##   lower_ci upper_ci
+    ##      <dbl>    <dbl>
+    ## 1  -10927.   24417.
 
-```
+### Exercise 4: In the RStudio help, find out what the direction argument does for the get\_p\_value and shade\_p\_value functions. Try setting it to both on the data above.
 
+### Exercise 5: Are the resale prices means between Marine Parade and Bukit Timah significantly different?
 
-
-## Exercise 5: Are the resale prices means between Marine Parade and Bukit Timah significantly different?
-```{r}
-
-```
-
-
-## Exercise 6: During the previous week, we saw that the price of a flat can be quite different depending on what storey the flat is located on. Use the same procedure to see if the average price of 3 room flats on storey 04-06 is significantly different from 3 room flats on storey 07-09.
-```{r}
-
-```
-
-
+### Exercise 6: During the previous week, we saw that the price of a flat can be quite different depending on what storey the flat is located on. Use the same procedure to see if the average price of 3 room flats on storey 04-06 is significantly different from 3 room flats on storey 07-09.
