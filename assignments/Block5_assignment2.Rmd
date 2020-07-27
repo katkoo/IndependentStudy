@@ -1,0 +1,209 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Block 5: assignment2
+```{r}
+library(tidyverse)
+library(here)
+library(e1071)
+library(skimr)
+library(lubridate)
+library(forcats)
+library(ggplot2)
+library(infer)
+sales <- readRDS(here::here("data/sales.rds"))
+```
+
+### Assignment 2.1:
+
+“Is the average price of 3 room flats on storey 04-06 significantly different from 3 room flats on storey 07-09?”. To do so, we will use all transactions for 3 room flats in storeys 04-06 or 07-09 in our dataset.
+```{r}
+storey_range_means <- sales %>%
+  filter( flat_type =="3 ROOM" & (storey_range == "04 TO 06" | storey_range == "07 TO 09") ) %>%
+  group_by(storey_range) %>%
+  summarise(mean = mean(resale_price))
+storey_range_means
+
+ggplot() +
+  geom_histogram(
+    data = sales %>%
+      filter( flat_type =="3 ROOM" & (storey_range == "04 TO 06" | storey_range == "07 TO 09") ),
+    mapping = aes(x = resale_price, y = ..density.., group = storey_range, fill = storey_range),
+    position = position_dodge()
+  ) +
+  geom_vline(
+    data = storey_range_means,
+    mapping = aes(xintercept = mean, group = storey_range, color = storey_range)
+  )
+
+# Confidence interval for group 1
+bootstrapped_resale_price_04 <- sales %>% 
+  filter(storey_range == "04 TO 06") %>% 
+  specify(response = resale_price) %>% 
+  generate(reps = 100) %>% 
+  calculate(stat = "mean")
+bootstrapped_resale_price_04 %>% 
+  get_ci()
+# Confidence interval for group 2
+bootstrapped_resale_price_07 <- sales %>% 
+  filter(storey_range == "04 TO 06") %>% 
+  specify(response = resale_price) %>% 
+  generate(reps = 100) %>% 
+  calculate(stat = "mean")
+bootstrapped_resale_price_07 %>% 
+  get_ci()
+# Result: Confidence intervals overlap, so there might or might not be a significant difference.
+```
+
+```{r}
+mean_diff <- sales %>% 
+  filter( flat_type =="3 ROOM" & (storey_range == "04 TO 06" | storey_range == "07 TO 09") ) %>%
+  specify(formula = resale_price ~ storey_range) %>% 
+  calculate(stat = "diff in means", order = c("07 TO 09","04 TO 06"))
+mean_diff
+
+"State your null hypothesis and your alternative hypothesis."
+"# Null Hypothesis: There is no difference between average the price of 3-room flats on storey 04-06 and 3-room flats on storey 07-09." 
+"# Alternative Hypothesis: The price of 3-room flats is more expensive on storey 07-09."
+
+"Construct the null distribution."
+null_distribution <- sales %>% 
+  filter( flat_type =="3 ROOM" & (storey_range == "04 TO 06" | storey_range == "07 TO 09") ) %>% 
+  specify(formula = resale_price ~ storey_range) %>% 
+  hypothesize(null = "independence") %>% 
+  generate(reps = 500, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("07 TO 09","04 TO 06"))
+
+"Find and visualise the p-value."
+"# The  p-value quantifies the probability of obtaining a test statistic just as extreme or more extreme than the observed test statistic assuming the Null hypothesis is true. Here, extreme is defined in terms of the Alternative hypothesis that higher storeys have higher resale price"
+null_distribution %>% 
+  visualise(bins = 100) +
+  shade_p_value(obs_stat = mean_diff, direction = "greater")
+null_distribution %>% 
+  get_pvalue(obs_stat = mean_diff, direction = "greater")
+"# Commonly used values for α (significance level) are 0.1, 0.01, and 0.05"
+"# p-value=0 (below significance level), hence, Null hypothesis rejected."
+
+"Construct and visualise the confidence interval of the sample difference in means and discuss its relation with the p-value."
+"# To create the corresponding bootstrap distribution needed to construct a 95% confidence interval: We remove hypothesise()"
+diff_m <- sales %>% 
+  filter( flat_type =="3 ROOM" & (storey_range == "04 TO 06" | storey_range == "07 TO 09") ) %>% 
+  specify(formula = resale_price ~ storey_range) %>%  # resale_price as the response variable and storey_range as the explanatory variable
+  # hypothesize(null = "independence") %>% # disable the null hypothesis
+  generate(reps = 500, type = "bootstrap") %>% # set type to bootstrap
+  calculate(stat = "diff in means", order = c("07 TO 09","04 TO 06")) #%>% 
+confidence_int_calc <- diff_m%>% 
+  get_ci(level = 0.95, type="percentile")
+visualize(diff_m) +
+  shade_confidence_interval(confidence_int_calc)
+
+"# A key value 0 is not included in the confidence iterval, suggesting that prices for3-room flats at floors 7-to-9 and 4-to-6 are truly different"
+
+```
+BONUS: Plot the difference in means for successive groups of flats per storey, i.e., obtain the difference in means for 04-06 to 01-03, then 07-09 to 04-06, then 12-10 to 07-09 etc. What do you observe? When does the price difference stop being significant? (if ever?)
+
+```{r}
+library(dplyr)
+storey_unique <- factor(unique(storey_range))
+storey_list <- c()
+for (item in storey_unique){
+  num_item <- as.integer(str_split(toString(item)," ")[[1]][1] )
+  storey_list <- append(storey_list, num_item)
+}
+invisible(storey_list_arranged <- storey_unique %>% as.data.frame %>% arrange(storey_list) )
+invisible(storey_list_arranged<-list(storey_list_arranged))
+
+for (count in 1:(length(storey_list_arranged[[1]][[1]])-1) ) {
+  print(count)
+  print(storey<- toString(storey_list_arranged[[1]][[1]][count]))
+  print(storey2<- toString(storey_list_arranged[[1]][[1]][count+1]))
+  
+  diff_m_all <- sales %>% 
+    filter( storey_range == storey | storey_range == storey2 ) %>% 
+    specify(formula = resale_price ~ storey_range) %>%  # resale_price as the response variable and storey_range as the explanatory variable
+    # hypothesize(null = "independence") %>% # disable the null hypothesis
+    generate(reps = 500, type = "bootstrap") %>% # set type to bootstrap
+    calculate(stat = "diff in means", order = c(storey2,storey)) #%>% 
+  confidence_int_calc <- diff_m_all%>% 
+    get_ci(level = 0.95, type="percentile")
+  p <- visualize(diff_m_all) +
+    shade_confidence_interval(confidence_int_calc, fill = "turquoise")
+  print( p + scale_x_continuous(name= paste(toString(storey2), " and ", toString(storey)) ) )
+
+}
+```
+
+
+
+
+
+### Assignment 2.2 Regression
+
+Experiment with the addition of different continuous and ordinal variables to the regression model built in Chapter 5 (but EXCLUDE town for now). Pay attention to the overall goodness of fit of the model but also to the regression coefficients. Interpret and explain the coefficients.
+```{r}
+library(broom)
+library(moderndive)
+sales_2016 <- filter(sales, month > "2015-12-01" & month < "2017-01-01")
+#ols <- lm(resale_price ~ floor_area_sqm + storey_range, sales_2016) #dependent and independent variables
+
+# Fit regression model:
+score_model <- lm(resale_price ~ floor_area_sqm , data = sales_2016)
+# Get regression table:
+get_regression_table(score_model) # Shows Estimate, standard error, test statistic, p-value, lower 95% confidence interval bound, and upper 95% confidence interval bound
+
+"# Interpreting the regression table output: In the estimate column are the intercept= 3.88 and the slope = 0.067 for floor_area_sqm. Thus the equation of the regression line follows: resale_price = 73681.328 + 3753.697*floor_area_sqm"
+
+"# Slope 3753.697 i positive, indicating positive relationship btw variables. For every increase of 1 unit in floor_area_sqm, there is an associated increase of, on average, 3753.697 units of resale_price"
+
+"# Goodness of fit measures - ???"
+glance(score_model) # glance returns goodness of fit measures
+
+"The residual can be thought of as a model’s error or “lack of fit” for a particular observation. Subtracting the fitted value from the observed value."
+regression_points <- get_regression_points(score_model) # _hat = fitted values
+regression_points %>%  
+  ggplot(aes(x = residual)) +
+  geom_histogram(bins = 50)
+
+```
+
+Add the town variable to your regression model. Because town is a categorical variable R will create ‘dummy’ or binary variables for each unique entry. The first entry will be the ‘reference’. All the other coefficients will be reported relative to that reference (in this case AMK). If, say, the coefficient for Bedok is -30,000 that means that relative to Ang Mo Kio, flats in Bedok are $30,000 cheaper. You can change the ‘reference’ by chaning town into a factor and order your factor levels so that the reference is the first level. Interpret and explain the goodness of fit measures and the coefficients. Tip: if you have a lot of coefficients to report, don’t shy away from using visualiations.
+```{r}
+############################################
+invisible(with(sales_2016, sales_2016[order(town),]))
+sales_2016
+
+"Fit regression model"
+score_model_town <- lm(resale_price ~ town , data = sales_2016)
+# Get regression table:
+get_regression_table(score_model_town) # Shows Estimate, standard error, test statistic, p-value, lower 95% confidence interval bound, and upper 95% confidence interval bound
+
+"# Interpreting the regression table output: In the estimate column are the intercept= 419236.060	 corresponds to the mean resale_price in Ang Mo Kio
+
+"# Bishan prices seem to be the highest, with the mean of 419236.060 + 201254.100"
+"# Bukit Batok - lowest prices, with the mean of 419236.060 - 27892.179"
+"# y = intersept + townBEDOK * 1townBEDOK(x) + townBISHAN * 1townBISHAN(x) + ..., where 1town(x) = 1 or 0, if value belongs to the set or not"
+
+"# Goodness of fit measures - ???"
+glance(score_model) # glance returns goodness of fit measures
+
+"The residual can be thought of as a model’s error or “lack of fit” for a particular observation. Subtracting the fitted value from the observed value."
+regression_points <- get_regression_points(score_model) # _hat = fitted values
+regression_points %>%  
+  ggplot(aes(x = residual)) +
+  geom_histogram(bins = 50)
+
+#library(gapminder) #for regression with categorical variables
+```
+
+
+Based on your model, try to work through a simple example. Let’s say you have a family in the market for a 3 room flat in Punggol. They are looking for a flat sized at 67 sq meters and 95 years left on the lease. What should they be looking to pay according to your model? Can you explain to them how each of their choices translates into the flat price? Compare your estimate with all known transactions of flats with those characteristics - how correct was your model?
+
+The coefficients are very useful in helping us understand how the resale price is affected by other variables. However, sometimes we conduct regression analysis simply because we are interested in predicting the dependent variable for new observations. So far, you have done your analysis only on the 2016 data. Use your 2016 model, to predict the 2017 prices. Tip: you can use the augment function with the newData argument to do this. Calculate the standard error of the estimate for the 2017 and compare that with your 2016 data. Did the error go up or down and what might cause this?
+
+BONUS: Finally, discuss how you could further enhance your analysis with the inclusion of additional variables or data not contained within the HDB resale transaction dataset itself, or try out a non-linear model by transforming some of your independent variables. For instance (this is an example), if you find that the resale_price is usually roughly dependent on the square of the remaining_lease, you could run a linear model with remaining_lease ^ 2.

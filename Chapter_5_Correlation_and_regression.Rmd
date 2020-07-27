@@ -46,6 +46,21 @@ ggplot(sales, aes(x = storey_range , y = resale_price )) +
   geom_boxplot()
 
 ```
+5.2 Visualize first
+```{r}
+sales <- readRDS(here::here("data/sales.rds"))
+
+sales %>% 
+  select(floor_area_sqm, remaining_lease, lease_commence_date, resale_price) %>% 
+  pairs()
+```
+```{r}
+sales %>% 
+  select(floor_area_sqm, remaining_lease, lease_commence_date, resale_price) %>% 
+  sample_frac(0.05) %>% 
+  pairs()
+```
+
 
 ```{r}
 # 5.3. Correlation 
